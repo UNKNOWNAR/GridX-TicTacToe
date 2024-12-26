@@ -34,6 +34,10 @@ public class SinglePlayerLogicScript : MonoBehaviour
 
     private void Start()
     {
+        playerChoiceSprite = XorO.GetPlayerChoiceSprite();
+        playerChoiceChar = XorO.GetPlayerChoiceChar();
+        Debug.Log("player choice char in logic = " + playerChoiceChar);
+        nextCharacter = playerChoiceChar == 'X' ? 'O' : 'X';
         ai = new TTTAI(playerChoiceChar);
         if (PlayerPrefs.HasKey(DIFFICULTY_SELECTED_STRING) && PlayerPrefs.HasKey(DIFFICULTY_SELECTED_INTEGER))
         {
@@ -46,10 +50,6 @@ public class SinglePlayerLogicScript : MonoBehaviour
             selectedDifficulty.text = "No Difficulty Selected";
             Debug.LogError("User did not select a difficulty level");
         }
-        playerChoiceSprite = XorO.GetPlayerChoiceSprite();
-        playerChoiceChar = XorO.GetPlayerChoiceChar();
-        Debug.Log("player choice char in logic = " + playerChoiceChar);
-        nextCharacter = playerChoiceChar == 'X' ? 'O' : 'X';
         fill();
         choice = Random.Range(1, 3);
         message.text = (choice == 1) ? "Computer's First Move" : "Your First Move";

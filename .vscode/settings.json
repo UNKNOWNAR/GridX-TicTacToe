@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "GridX-Unity.sln"
+    "dotnet.defaultSolution": "GridX.sln"
 }
