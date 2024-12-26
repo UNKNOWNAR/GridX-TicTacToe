@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+//using UnityEngine.UIElements;
 
 public class MultiPlayer5x5LogicScript : MonoBehaviour
 {
@@ -18,11 +17,6 @@ public class MultiPlayer5x5LogicScript : MonoBehaviour
     private bool isTurnOfX = true;
     private char[,] moveArray = new char[5, 5];
     bool gameIsOver = false;
-
-    private Button button;
-    private int winrange = 0;
-    private char CharWin = ' ';
-    private char nextCharacter = ' ';
 
     private void Awake()
     {
@@ -61,40 +55,58 @@ public class MultiPlayer5x5LogicScript : MonoBehaviour
         CheckForGameOver(moveArray);
     }
 
+    private bool verticalCheck(char[,] arr, int row, int column)
+    {
+        return arr[row, column] == arr[row - 1, column] && arr[row, column] == arr[row + 1, column];
+    }
+
+    private bool horizontalCheck(char[,] arr, int row, int column)
+    {
+        return arr[row, column] == arr[row, column - 1] && arr[row, column] == arr[row, column + 1];
+    }
+
+    private bool leftDiagonalCheck(char[,] arr, int row, int column)
+    {
+        return arr[row, column] == arr[row - 1, column - 1] && arr[row, column] == arr[row + 1, column + 1];
+    }
+
+    private bool rightDiagonalCheck(char[,] arr, int row, int column)
+    {
+        return arr[row, column] == arr[row + 1, column - 1] && arr[row, column] == arr[row - 1, column + 1];
+    }
+
     private void CheckForGameOver(char[,] moveArray)
     {
         string playerWithX = playerNames.GetPlayer1Name();
         string playerWithO = playerNames.GetPlayer2Name();
         char gameWinnerChar = ' ';
-        for(int i = 0;i < 5;i++)
-        {
-            if (moveArray[i, 0] == moveArray[i, 1] && moveArray[i, 0] == moveArray[i, 2] && moveArray[i, 0] == moveArray[i, 3] && moveArray[i, 0] == moveArray[i, 4] && moveArray[i, 0] != ' ')
-            {
-                gameIsOver = true;
-                gameWinnerChar = moveArray[i, 0];
-                break;
-            }
 
-            if (moveArray[0, i] == moveArray[1, i] && moveArray[0, i] == moveArray[2, i] && moveArray[0, i] == moveArray[3, i] && moveArray[0, i] == moveArray[4, i] && moveArray[0, i] != ' ')
+        for(int i = 1; i < 4; i++)
+        {
+            for(int j = 1; j < 4; j++)
             {
-                gameIsOver = true;
-                gameWinnerChar = moveArray[0, i];
-                break;
+                if (moveArray[i, j] == ' ')
+                    continue;
+                if (verticalCheck(moveArray, i, j) || horizontalCheck(moveArray, i, j) || leftDiagonalCheck(moveArray, i, j) || rightDiagonalCheck(moveArray, i, j))
+                {
+                    gameIsOver = true;
+                    gameWinnerChar = moveArray[i, j];
+                    break;
+                }
             }
-        }
-        if (moveArray[0, 0] == moveArray[1, 1] && moveArray[0, 0] == moveArray[2, 2] && moveArray[0, 0] == moveArray[3, 3] && moveArray[0, 0] == moveArray[4, 4] && moveArray[0, 0] != ' ')
-        {
-            gameIsOver = true;
-            gameWinnerChar = moveArray[0, 0];
-        }
-        if (moveArray[0, 4] == moveArray[1, 3] && moveArray[0, 4] == moveArray[2, 2] && moveArray[0, 4] == moveArray[3, 1] && moveArray[0, 4] == moveArray[4, 0] && moveArray[0, 4] != ' ')
-        {
-            gameIsOver = true;
-            gameWinnerChar = moveArray[0, 4];
         }
 
         if (gameIsOver)
         {
+            for (int i = 0; i < 5; i++)
+            {
+                for(int j = 0; j < 5; j++)
+                {
+                    Button button = GameObject.Find(i.ToString() + j.ToString()).GetComponent<Button>();
+                    if (moveArray[i, j] == ' ')
+                        button.image.color = Camera.main.backgroundColor;
+                }
+            }
             if (gameWinnerChar == 'X')
             {
                 result.text = playerWithX + " Wins!";
