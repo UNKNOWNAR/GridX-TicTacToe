@@ -1,80 +1,126 @@
 using System;
+using UnityEngine;
 
 public class TTTAI
 {
-    private int moveCount = 0;
-    private int n = 0;
-    private int a = 0;
-    private int lastMove = 0;
-    private char characterByComputer;
-    private char characterByPlayer;
+    int moveCount = 0; // Only counts moves by TTTAI, not the player
+    int n = 0;
+    int playersLastMove = 0;
+    int firstMove;
+    char characterByComputer;
+    char characterByPlayer;
+    int playersFirstMove = -1;
+    char preferredCharacter;
+    int[] corner = { 0, 2, 6, 8 };
 
     public TTTAI(char ch)
     {
         characterByPlayer = ch;
         characterByComputer = (ch == 'X') ? 'O' : 'X';
+        preferredCharacter = characterByComputer;
+        firstMove = 0;
     }
 
-    public void Reset()
+    /*public void Reset1()
     {
         moveCount = 0;
-        lastMove = 0;
+        playersLastMove = 0;
         n = 0;
-        a = 0;
+    }*/
+
+    int Tools(int k)
+    {
+        if (k == 1 || k == 2 || k == 3) return 0;
+        if (k == 4) return 1;
+        if (k == 5 || k == 6) return 2;
+        if (k == 7) return 3;
+        return 6;
     }
 
-    private int Tools(int k)
+    int Tools1(int k)
     {
-        if (k == 1 || k == 2 || k == 3)
-            return 0;
-        else if (k == 4)
-            return 1;
-        else if (k == 5 || k == 6)
-            return 2;
-        else if (k == 7)
-            return 3;
-        else
-            return 6;
-    }
-
-    private int Tools1(int k)
-    {
-        if (k == 1)
-            return 4;
-        else if (k == 2 || k == 7 || k == 8)
-            return 1;
-        else if (k == 3 || k == 4 || k == 6)
-            return 3;
-        else
-            return 2;
-    }
-
-    private int Tools3(char[] play, int m)
-    {
-        int z = PairCheck(play, m);
-        if (z != -1)
-            return z;
-
-        z = Random(play);
-        return z;
-    }
-
-    private int Move1(char[] play, int n)
-    {
-        if (play[4] == ' ' && n == 2)
-        {
-            moveCount++;
-            return 4;
-        }
-        else if (n == 1 || play[4] != ' ')
-        {
-            moveCount++;
-            return 2;
-        }
+        if (k == 1) return 4;
+        if (k == 2 || k == 7 || k == 8) return 1;
+        if (k == 3 || k == 4 || k == 6) return 3;
         return 2;
     }
 
-    private int PairCheck(char[] play, int n)
+    bool CornerCheck(int move)
+    {
+        foreach (int c in corner)
+        {
+            if (c == move) return true;
+        }
+        return false;
+    }
+
+    int DoubleWinChecker(char[] moveArray, int n)
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            if (moveArray[i] == ' ')
+            {
+                moveArray[i] = characterByComputer;
+                int temp = 0;
+
+                if (n == 1)
+                {
+                    temp = PairCheck(moveArray, 1);
+                    if (temp == -1)
+                    {
+                        moveArray[i] = ' ';
+                        continue;
+                    }
+                    moveArray[temp] = characterByPlayer;
+                    preferredCharacter = characterByPlayer;
+                }
+                else if (n == 0)
+                {
+                    preferredCharacter = characterByComputer;
+                }
+
+                int result = PairCheck(moveArray, 3);
+                if (n == 1) moveArray[temp] = ' ';
+                if (result == 690)
+                {
+                    result = PairCheck(moveArray, 2);
+                    moveArray[i] = ' ';
+                    if (result != 69) return i;
+                }
+                else if (n == 1)
+                {
+                    moveArray[i] = ' ';
+                    return i;
+                }
+                moveArray[i] = ' ';
+            }
+        }
+        return -1;
+    }
+
+    int WinGenerator(int[] movesAvailable, char[] moveArray)
+    {        
+        foreach (int availableMove in movesAvailable)
+        {
+            if (moveArray[availableMove] == ' ')
+            {
+                moveArray[availableMove] = characterByComputer;
+                int result = PairCheck(moveArray, 0);
+                if (result != 690)
+                {
+                    moveArray[result] = characterByPlayer;
+                    int temp = PairCheck(moveArray, 2);
+                    moveArray[result] = ' ';
+                    moveArray[availableMove] = ' ';
+                    if (temp == 690) return availableMove;
+                }
+                moveArray[availableMove] = ' ';
+            }
+        }
+        return -1;
+    }
+
+    int PairCheck(char[] play, int n)
     {
         string encode = "";
         for (int k = 1; k <= 8; k++)
@@ -100,45 +146,68 @@ public class TTTAI
             }
             sum1 = sum - sum1;
             if (y == 2 && play[sum1] == ' ')
-                encode += previousCharacter + sum1.ToString();
+            {
+                if (previousCharacter == characterByComputer && n == 0)
+                    return sum1;
+                else if (previousCharacter == characterByPlayer && n == 2)
+                    return 69;
+                else if (n % 2 == 1)
+                    encode += previousCharacter + sum1.ToString();
+            }
         }
+        if (n % 2 == 0) return 690;
+
         int l = encode.Length;
-        if (l > 1)
+        if (n == 3)
+        {
+            int flag = 0;
+            for (int i = 0; i < l; i += 2)
+            {
+                if (encode[i] == preferredCharacter) flag++;
+            }
+            if (flag == 2) return 690;
+        }
+        else if (l > 1 && n == 1)
         {
             int last = 0;
             for (int i = 0; i < l; i += 2)
             {
-                if (encode[i] == characterByComputer)
-                    return int.Parse(encode[i + 1].ToString());
-                else
-                    last = i;
+                if (encode[i] == characterByComputer) return int.Parse(encode[i + 1].ToString());
+                else last = i;
             }
             return int.Parse(encode[last + 1].ToString());
         }
         return -1;
     }
 
-    private int WinCase1(char[] play)
+    int Controller(char[] play)
     {
-        if (lastMove == 0 || lastMove == 2 || lastMove == 6 || lastMove == 8)
+        int z = PairCheck(play, 1);
+        if (z != -1) return z;
+        z = DoubleWinChecker(play, 1);
+        if (z != -1) return z;
+        return Random(play);
+    }
+
+    int FirstMove()
+    {
+        moveCount++;
+        if (CornerCheck(playersFirstMove)) return 4;
+        else
         {
-            for (int i = 0; i <= 8; i += 2)
-            {
-                if (play[i] == ' ' && i != 4)
-                    return i;
-            }
+            System.Random random = new System.Random();
+            firstMove = random.Next(4);
+            firstMove = corner[firstMove];
+            return firstMove;
         }
-        return -1;
     }
 
     public int Random(char[] play)
     {
         int b = 0;
         int[] rand = new int[9];
-        for (int z = 0; z < 9; z++)
-            rand[z] = -1;
+        for (int z = 0; z < 9; z++) rand[z] = -1;
 
-        b = 0;
         for (int i = 0; i < 9; i++)
         {
             if (play[i] == ' ')
@@ -147,134 +216,62 @@ public class TTTAI
                 b++;
             }
         }
-        Random random = new Random();
-        int j = random.Next(0, b);
+
+        System.Random random = new System.Random();
+        int randomValue = random.Next(b);
         moveCount++;
-        return rand[j];
+        return rand[randomValue];
     }
 
-    public int Input(char[] play, int n, int x)
+    public int Input(char[] play, int choice, int lastMove)
     {
-        if (n == 2)
-            return Second(play, n);
-        else
-            return First(play, n, x);
+        if (choice == 2) return Second(play, choice, lastMove);
+        else return First(play, choice);
     }
 
-    private int First(char[] play, int m, int x)
+    int First(char[] play, int choice)
     {
-        if (moveCount == 0)
-            return Move1(play, m);
-        else if (moveCount > 1 && n == 2)
-            return Tools3(play, m);
+        if (moveCount == 0) return FirstMove();
+        else if (moveCount > 1 && n == 2) return Controller(play);
         else if (play[4] == ' ' || n == 1)
         {
             n = 1;
             moveCount++;
-            return FWin1(play, x);
+            return FWin1(play);
         }
         else if (play[4] != ' ')
         {
+            Debug.Log(firstMove);
             n = 2;
             moveCount++;
-            return 6;
+            return 8 - firstMove;
         }
         return 0;
     }
 
-    private int FWin1(char[] play, int x)
+    int FWin1(char[] play)
     {
-        if (moveCount == 2)
-        {
-            while (play[a] != characterByPlayer)
-                a++;
-
-            if (a == 0 || a == 1 || a == 7)
-                return 8;
-            else
-                return 0;
-        }
+        if (moveCount == 2) return WinGenerator(corner, play);
         else if (moveCount == 3)
         {
+            int move = PairCheck(play, 1);
             n = 2;
-            if (a == 0 || a == 1)
-            {
-                if (x == 5)
-                    return 6;
-                else
-                    return 5;
-            }
-            else if (a == 3 || a == 6)
-            {
-                if (x == 1)
-                    return 8;
-                else
-                    return 1;
-            }
-            else if (a == 5 || a == 8)
-            {
-                if (x == 1)
-                    return 6;
-                else
-                    return 1;
-            }
-            else
-            {
-                if (x == 5)
-                    return 0;
-                else
-                    return 5;
-            }
+            if (move != -1) return move;
+            return DoubleWinChecker(play, 0);
         }
         return 0;
     }
 
-    private int Second(char[] play, int n)
+    int Second(char[] play, int n, int lastMove)
     {
         if (moveCount == 0)
         {
-            lastMove = Move1(play, n);
-            return lastMove;
+            playersFirstMove = lastMove;
+            return FirstMove();
         }
-        else if (moveCount == 1 && play[4] == characterByComputer)
-        {
-            if (play[0] == characterByPlayer && play[8] == characterByPlayer && play[3] == ' ')
-            {
-                moveCount++;
-                return 3;
-            }
-            else if (play[2] == characterByPlayer && play[6] == characterByPlayer && play[3] == ' ')
-            {
-                moveCount++;
-                return 3;
-            }
-            else if (play[1] == characterByPlayer && play[7] == characterByPlayer && play[0] == ' ')
-            {
-                moveCount++;
-                return 0;
-            }
-            else if (play[3] == characterByPlayer && play[5] == characterByPlayer && play[0] == ' ')
-            {
-                moveCount++;
-                return 0;
-            }
-        }
-
-        int z = PairCheck(play, n);
-        if (z != -1)
-            return z;
-
-        if (moveCount == 1)
-        {
-            z = WinCase1(play);
-            if (z != -1)
-            {
-                moveCount++;
-                return z;
-            }
-        }
-
-        z = Random(play);
-        return z;
+        moveCount++;
+        if (CornerCheck(playersFirstMove) && moveCount == 1)
+            return DoubleWinChecker(play, 1);
+        return Controller(play);
     }
-}  
+}
