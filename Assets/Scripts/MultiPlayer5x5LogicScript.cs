@@ -55,22 +55,22 @@ public class MultiPlayer5x5LogicScript : MonoBehaviour
         CheckForGameOver(moveArray);
     }
 
-    private bool verticalCheck(char[,] arr, int row, int column)
+    private bool VerticalCheck(char[,] arr, int row, int column)
     {
         return arr[row, column] == arr[row - 1, column] && arr[row, column] == arr[row + 1, column];
     }
 
-    private bool horizontalCheck(char[,] arr, int row, int column)
+    private bool HorizontalCheck(char[,] arr, int row, int column)
     {
         return arr[row, column] == arr[row, column - 1] && arr[row, column] == arr[row, column + 1];
     }
 
-    private bool leftDiagonalCheck(char[,] arr, int row, int column)
+    private bool LeftDiagonalCheck(char[,] arr, int row, int column)
     {
         return arr[row, column] == arr[row - 1, column - 1] && arr[row, column] == arr[row + 1, column + 1];
     }
 
-    private bool rightDiagonalCheck(char[,] arr, int row, int column)
+    private bool RightDiagonalCheck(char[,] arr, int row, int column)
     {
         return arr[row, column] == arr[row + 1, column - 1] && arr[row, column] == arr[row - 1, column + 1];
     }
@@ -81,13 +81,32 @@ public class MultiPlayer5x5LogicScript : MonoBehaviour
         string playerWithO = playerNames.GetPlayer2Name();
         char gameWinnerChar = ' ';
 
+        for (int i = 0; i < 5; i += 4)
+        {
+            for (int j = 1; j < 4; j++)
+            {
+                if (HorizontalCheck(moveArray, i, j) && moveArray[i, j] != ' ')
+                {
+                    gameIsOver = true;
+                    gameWinnerChar = moveArray[i, j];
+                    break;
+                }
+                if (VerticalCheck(moveArray, j, i) && moveArray[j, i] != ' ')
+                {
+                    gameIsOver = true;
+                    gameWinnerChar = moveArray[j, i];
+                    break;
+                }
+            }
+        }
+
         for(int i = 1; i < 4; i++)
         {
             for(int j = 1; j < 4; j++)
             {
                 if (moveArray[i, j] == ' ')
                     continue;
-                if (verticalCheck(moveArray, i, j) || horizontalCheck(moveArray, i, j) || leftDiagonalCheck(moveArray, i, j) || rightDiagonalCheck(moveArray, i, j))
+                if (VerticalCheck(moveArray, i, j) || HorizontalCheck(moveArray, i, j) || LeftDiagonalCheck(moveArray, i, j) || RightDiagonalCheck(moveArray, i, j))
                 {
                     gameIsOver = true;
                     gameWinnerChar = moveArray[i, j];
